@@ -1,6 +1,7 @@
 package com.example.chat.controller;
 
 import com.example.chat.model.QrCodeInfo;
+import com.example.chat.model.ChatMessage;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
@@ -36,10 +37,18 @@ public class QrCodeController {
     public void scanQrCode(@PathVariable String qrId, @RequestBody Map<String, String> body) {
         QrCodeInfo qrCode = qrCodeMap.get(qrId);
         if (qrCode != null) {
-            qrCode.setStatus("SCANNED");
-            qrCode.setUsername(body.get("username"));
+            qrCode.setStatus("CONFIRMED");
+            String username = body.get("username");
+            qrCode.setUsername(username);
             // 通过WebSocket通知前端二维码已扫描
             messagingTemplate.convertAndSend("/topic/qrcode/" + qrId, qrCode);
+            
+            // 发送用户加入聊天室的消息
+            ChatMessage joinMessage = new ChatMessage();
+            joinMessage.setSender(username);
+            joinMessage.setType(ChatMessage.MessageType.JOIN);
+            joinMessage.setContent(username + " 加入了聊天室");
+            messagingTemplate.convertAndSend("/topic/public", joinMessage);
         }
     }
 
@@ -49,7 +58,6 @@ public class QrCodeController {
         if (qrCode != null) {
             qrCode.setStatus("CONFIRMED");
             // 通过WebSocket通知前端登录确认
-            messagingTemplate.convertAndSend("/topic/qrcode/" + qrId, qrCode);
         }
         return qrCode;
     }

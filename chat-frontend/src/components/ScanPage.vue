@@ -43,7 +43,7 @@ export default defineComponent({
 
         // 等待一秒后发送登录确认
         setTimeout(async () => {
-          await fetch(`http://172.31.39.193:8080/api/qrcode/confirm/${qrId.value}`, {
+          await fetch(`http://localhost:8080/api/qrcode/confirm/${qrId.value}`, {
             method: 'POST'
           })
           scanned.value = true

@@ -25,6 +25,7 @@ import { useRouter } from 'vue-router'
 import QRCode from 'qrcode'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
+import { userStore } from '../store/user'
 
 export default defineComponent({
   name: 'QrLogin',
@@ -54,17 +55,13 @@ export default defineComponent({
         onConnect: () => {
           client.subscribe(`/topic/qrcode/${qrId.value}`, (message) => {
             const data = JSON.parse(message.body)
+            console.log(data)
             status.value = data.status
             
             if (data.status === 'CONFIRMED') {
               const userId = `user_${Date.now()}`
-              router.push({
-                name: 'ChatRoom',
-                params: {
-                  username: data.username,
-                  userId
-                }
-              })
+              userStore.setUser(data.username, userId)
+              router.replace('/chat')
             }
           })
         }

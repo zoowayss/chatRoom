@@ -28,6 +28,7 @@
 import { defineComponent, ref, onMounted, onUnmounted } from 'vue'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
+import { userStore } from '../store/user'
 
 interface ChatMessage {
   sender: string
@@ -37,17 +38,8 @@ interface ChatMessage {
 
 export default defineComponent({
   name: 'ChatRoom',
-  props: {
-    username: {
-      type: String,
-      required: true
-    },
-    userId: {
-      type: String,
-      required: true
-    }
-  },
-  setup(props) {
+  setup() {
+    const { username, userId } = userStore
     const messages = ref<ChatMessage[]>([])
     const newMessage = ref('')
     const stompClient = ref<Client | null>(null)
@@ -63,13 +55,14 @@ export default defineComponent({
             scrollToBottom()
           })
 
+          const joinMessage = {
+            sender: username.value,
+            type: 'JOIN',
+            content: username.value + ' 加入了聊天室'
+          }
           client.publish({
             destination: '/app/chat.addUser',
-            body: JSON.stringify({
-              sender: props.username,
-              type: 'JOIN',
-              content: props.username + ' 加入了聊天室'
-            })
+            body: JSON.stringify(joinMessage)
           })
         }
       })
@@ -81,7 +74,7 @@ export default defineComponent({
     const sendMessage = () => {
       if (newMessage.value.trim() && stompClient.value) {
         const chatMessage = {
-          sender: props.username,
+          sender: username.value,
           content: newMessage.value,
           type: 'CHAT'
         }
@@ -161,11 +154,15 @@ export default defineComponent({
 .message-content.join {
   background: #e8f5e9;
   text-align: center;
+  margin: 0 auto;
+  width: fit-content;
 }
 
 .message-content.leave {
   background: #ffebee;
   text-align: center;
+  margin: 0 auto;
+  width: fit-content;
 }
 
 .sender {
