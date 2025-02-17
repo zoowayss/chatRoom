@@ -1,18 +1,14 @@
 <template>
   <div class="app">
-    <ChatRoom />
+    <router-view></router-view>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import ChatRoom from './components/ChatRoom.vue'
 
 export default defineComponent({
-  name: 'App',
-  components: {
-    ChatRoom
-  }
+  name: 'App'
 })
 </script>
 

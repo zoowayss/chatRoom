@@ -37,16 +37,25 @@ interface ChatMessage {
 
 export default defineComponent({
   name: 'ChatRoom',
-  setup() {
+  props: {
+    username: {
+      type: String,
+      required: true
+    },
+    userId: {
+      type: String,
+      required: true
+    }
+  },
+  setup(props) {
     const messages = ref<ChatMessage[]>([])
     const newMessage = ref('')
     const stompClient = ref<Client | null>(null)
-    const username = ref('')
     const messageContainer = ref<HTMLElement | null>(null)
 
     const connect = () => {
       const client = new Client({
-        webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+        webSocketFactory: () => new SockJS('http://172.31.39.193:8080/ws'),
         onConnect: () => {
           client.subscribe('/topic/public', (message) => {
             const receivedMessage = JSON.parse(message.body)
@@ -54,13 +63,12 @@ export default defineComponent({
             scrollToBottom()
           })
 
-          username.value = prompt('请输入您的用户名') || `用户${Math.floor(Math.random() * 1000)}`
           client.publish({
             destination: '/app/chat.addUser',
             body: JSON.stringify({
-              sender: username.value,
+              sender: props.username,
               type: 'JOIN',
-              content: username.value + ' 加入了聊天室'
+              content: props.username + ' 加入了聊天室'
             })
           })
         }
@@ -73,7 +81,7 @@ export default defineComponent({
     const sendMessage = () => {
       if (newMessage.value.trim() && stompClient.value) {
         const chatMessage = {
-          sender: username.value,
+          sender: props.username,
           content: newMessage.value,
           type: 'CHAT'
         }
